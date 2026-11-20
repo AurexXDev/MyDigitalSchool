@@ -8261,6 +8261,10 @@ const PLAYSVG='<svg viewBox="0 0 64 64" width="100%" height="100%"><circle cx="3
 const LINKSVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>';
 function mediaInner(e,cx){
   const mi=mediaInfo(e),pres=!!cx.pres,ttl=esc(e.title||(mi.host||''));
+  if(e.kind==='video'&&e.vid){
+    if(pres)return'<div class="sl-md sl-mv" onclick="event.stopPropagation()"><video data-vidid="'+esc(e.vid)+'" controls playsinline preload="metadata" style="pointer-events:auto"></video><div class="sl-md-w">Վիդեոն բեռնվում է…</div></div>';
+    return'<div class="sl-md sl-mv"><div class="sl-md-p">'+PLAYSVG+'</div><div class="sl-md-t">🎬 '+(esc(e.title||e.vname)||'Վիդեո')+'</div></div>';
+  }
   if(e.kind==='video'){
     if(!mi.href)return'<div class="sl-md sl-mv"><div class="sl-md-t">Վիդեոյի հղում չկա</div></div>';
     if(pres&&mi.embed)return'<div class="sl-md sl-mv" onclick="event.stopPropagation()"><iframe src="'+esc(mi.embed)+'" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" loading="lazy" style="pointer-events:auto"></iframe></div>';
@@ -8331,6 +8335,7 @@ function slideInner(sl,ph,cx){
 }
 function box(sl,ph,cx,extra){return '<div class="sl-box'+(extra?' '+extra:'')+'">'+slideInner(sl,ph,cx)+'</div>';}
 async function hydrate(root){
+  [...root.querySelectorAll('video[data-vidid]')].filter(v=>!v.getAttribute('src')).forEach(async v=>{const id=v.getAttribute('data-vidid');const w=()=>v.parentNode&&v.parentNode.querySelector('.sl-md-w');try{const u=await getVid(id);if(u&&v.isConnected){v.src=u;const x=w();if(x)x.remove();}else if(!u){const x=w();if(x)x.textContent='Վիդեոն չհաջողվեց բեռնել';}}catch(er){const x=w();if(x)x.textContent='Վիդեոն չհաջողվեց բեռնել';}});
   const els=[...root.querySelectorAll('img[data-imgid]')].filter(el=>!el.getAttribute('src'));
   await Promise.all(els.map(async el=>{const id=el.getAttribute('data-imgid');let d=S.imgs[id]||'';
     for(let t=0;t<4&&!d&&el.isConnected;t++){d=await getImg(id).catch(()=>'');if(!d)await new Promise(r=>setTimeout(r,500*(t+1)));}   // ցանցի ժամանակավոր սխալի դեպքում կրկնում ենք
@@ -8610,7 +8615,7 @@ function elProps(e){
      +F('Եզրագիծ',swr(['#ffffff','#1b1f33','#ef4444','#f59e0b','#10b981'],e.stroke,'slElStroke')+'<input type="range" min="0" max="10" step=".5" value="'+(e.sw!=null?e.sw:(e.shape==='line'?3:0))+'" oninput="slEl(\'sw\',+this.value)" style="margin-top:6px">');
   }
   if(e.t==='img')h+=F('Տեղավորում','<select onchange="slEl(\'fit\',this.value)"><option value="cover"'+(e.fit!=='contain'?' selected':'')+'>Լցնել (կտրել)</option><option value="contain"'+(e.fit==='contain'?' selected':'')+'>Ամբողջությամբ</option></select>')+F('Անկյունների կլորացում','<input type="range" min="0" max="25" step=".5" value="'+(+e.br||0)+'" oninput="slEl(\'br\',+this.value)">');
-  if(e.t==='media')h+=F(e.kind==='video'?'Վիդեոյի հղում (YouTube, Vimeo կամ .mp4)':'Հղում (https://…)','<input type="text" value="'+esc(e.url||'')+'" placeholder="https://" oninput="slEl(\'url\',this.value)" onchange="slEl(\'url\',this.value,1)">')+F(e.kind==='video'?'Ենթագրություն':'Գրվածք','<input type="text" value="'+esc(e.title||'')+'" oninput="slEl(\'title\',this.value)">')+(mediaUrl(e.url)||!e.url?'':'<div style="font-size:12px;color:#ef4444">Հղումը անվավեր է (թույլատրվում է միայն http/https)։</div>')+(e.kind==='video'?'<div style="font-size:11px;color:var(--txt3)">Վիդեոն նվագարկվում է «Ցուցադրել» ռեժիմում։ Խմբագրիչում երևում է նախադիտման քարտ։</div>':'')
+  if(e.t==='media')h+=F(e.kind==='video'?'Վիդեոյի հղում (YouTube, Vimeo կամ .mp4)':'Հղում (https://…)','<input type="text" value="'+esc(e.url||'')+'" placeholder="https://" oninput="slEl(\'url\',this.value)" onchange="slEl(\'url\',this.value,1)">')+F(e.kind==='video'?'Ենթագրություն':'Գրվածք','<input type="text" value="'+esc(e.title||'')+'" oninput="slEl(\'title\',this.value)">')+(mediaUrl(e.url)||!e.url?'':'<div style="font-size:12px;color:#ef4444">Հղումը անվավեր է (թույլատրվում է միայն http/https)։</div>')+(e.kind==='video'?'<label class="sl-btn" style="display:block;text-align:center;cursor:pointer">📁 Ընտրել gallery-ից / files-ից<input type="file" accept="video/*,image/*" style="display:none" onchange="slPickVid(this)"></label>'+(e.vid?'<div style="font-size:12px">🎬 '+esc(e.vname||'ֆայլ')+' <button class="sl-btn sm dng" onclick="slEl(\'vid\',\'\');slEl(\'vname\',\'\',1)">✕</button></div>':'')+'<div style="font-size:11px;color:var(--txt3)">Ֆայլը՝ մինչև 6 ՄԲ։ Վիդեոն նվագարկվում է «Ցուցադրել» ռեժիմում։</div><div id="sl-imgerr" style="color:#ef4444;font-size:12px"></div>':'')
   if(e.t==='table')h+=F('Աղյուսակ (տող = տող, սյունակները՝ |)','<textarea oninput="slTable(this.value)">'+esc((e.rows||[]).map(r=>r.join(' | ')).join('\n'))+'</textarea>')+'<div class="sl-r2"><div><label>Չափ</label><input type="range" min="1.2" max="6" step=".2" value="'+(+e.fs||2.6)+'" oninput="slEl(\'fs\',+this.value)"></div></div>'+F('Վերնագրի շարքի գույն',swr(['#6366f1','#10b981','#f59e0b','#ef4444','#1b1f33'],e.hc,'slElHc'));
   h+=F('Թափանցիկություն՝ '+(e.op==null?100:e.op)+'%','<input type="range" min="10" max="100" step="5" value="'+(e.op==null?100:e.op)+'" oninput="slEl(\'op\',+this.value);this.parentNode.firstChild.textContent=\'Թափանցիկություն՝ \'+this.value+\'%\'">')
    +'<div class="sl-r4">'+num('x','X %',-50,150,.5)+num('y','Y %',-50,150,.5)+num('w','Լ %',2,200,.5)+num('h','Բ %',2,200,.5)+'</div>'
@@ -8676,6 +8681,36 @@ let dragFrom=null;
 window.slDS=function(e,i){dragFrom=i;try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(i));}catch(x){}};
 window.slDO=function(e,el){e.preventDefault();el.classList.add('over');};
 window.slDD=function(e,i){e.preventDefault();const f=dragFrom;dragFrom=null;if(f==null||f===i)return;const a=S.deck.slides,[m]=a.splice(f,1);a.splice(i,0,m);S.sel=i;slMark();drawAll();};
+const VK=id=>'svid_'+id;
+const VMAX=6*1024*1024,VCH=600000;
+S.vids=S.vids||{};
+function fileToDataUrl(f){return new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(new Error('Ֆայլը չհաջողվեց կարդալ'));r.readAsDataURL(f);});}
+async function uploadVideo(file){
+  if(file.size>VMAX)throw new Error('Վիդեոն մեծ է ('+(file.size/1048576).toFixed(1)+' ՄԲ)։ Թույլատրվում է մինչև 6 ՄԲ։ Ավելի մեծի համար օգտագործեք YouTube/Vimeo հղում։');
+  setStatus('Վիդեոն վերբեռնվում է…','');
+  const du=await fileToDataUrl(file),id=uid(),parts=[];
+  for(let i=0;i<du.length;i+=VCH)parts.push(du.slice(i,i+VCH));
+  for(let i=0;i<parts.length;i++)await bSet(VK(id)+'_'+i,{data:parts[i],deck:S.deck.id,owner:me(),ts:Date.now()});
+  await bSet(VK(id),{n:parts.length,mime:file.type||'video/mp4',name:file.name||'',size:file.size,deck:S.deck.id,owner:me(),ts:Date.now()});   // վերջինը՝ երբ բոլոր մասերը պահված են
+  return{id:id,name:file.name||'',mime:file.type};
+}
+async function getVid(id){
+  if(S.vids[id])return S.vids[id];
+  const m=await bGet(VK(id));if(!m||!m.n)return'';
+  const ps=await Promise.all(Array.from({length:m.n},(_,i)=>bGet(VK(id)+'_'+i)));
+  if(ps.some(x=>!x||!x.data))return'';
+  const du=ps.map(x=>x.data).join('');const bin=atob(du.slice(du.indexOf(',')+1)),a=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);
+  S.vids[id]=URL.createObjectURL(new Blob([a],{type:m.mime||'video/mp4'}));return S.vids[id];
+}
+window.slPickVid=async function(inp){const f=inp.files&&inp.files[0];if(!f)return;imgErr('');const e0=curEl();
+  try{
+    if(/^image\//.test(f.type)){const r=await uploadImage(f,1280);const w=40,h=Math.min(90,w*(r.h/r.w)*(16/9));addEl(Object.assign(ELDEF.img(),{img:r.id,w:w,h:Math.round(h*10)/10,x:30,y:Math.max(2,Math.round((100-h)/2))}));slSave(false);}
+    else if(/^video\//.test(f.type)||/\.(mp4|webm|mov|m4v|ogg)$/i.test(f.name)){const r=await uploadVideo(f);const e=e0&&e0.t==='media'&&e0.kind==='video'?e0:null;
+      if(e){e.vid=r.id;e.vname=r.name;e.url='';slMark();drawAll();}else addEl(Object.assign(ELDEF.media('video'),{vid:r.id,vname:r.name}));
+      slSave(false);}
+    else throw new Error('Ընտրեք վիդեո կամ նկար ֆայլ։');
+  }catch(e){console.error(e);imgErr((e&&e.message)||'Չհաջողվեց վերբեռնել։');setStatus('Չպահպանվեց','er');}inp.value='';};
 async function uploadImage(file,max){
   setStatus('Նկարը վերբեռնվում է…','');
   const r=await resizeImage(file,max);const id=uid();
@@ -14911,6 +14946,7 @@ html body #gr select:focus,html body #gr-book select:focus,html body #semtch sel
 .sl-md.sl-mv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85}
 .sl-md.sl-mv iframe,.sl-md.sl-mv video{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
 .sl-md-p{position:relative;width:11cqw;height:11cqw}
+.sl-md-w{position:absolute;left:0;right:0;top:45%;text-align:center;font-size:2.2cqw;color:#fff;pointer-events:none}
 .sl-md-t{position:absolute;left:2cqw;right:2cqw;bottom:1.6cqw;font-size:2.2cqw;font-weight:700;text-shadow:0 1px 6px rgba(0,0,0,.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #sl-ed .sl-md *{pointer-events:none}
 </style>

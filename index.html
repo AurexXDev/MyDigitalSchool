@@ -15355,6 +15355,107 @@ function watchNotifs(){
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#notif-btn'))setTimeout(()=>{try{group();}catch(x){}},30);},true);
 })();
 </script>
+
+<style id="md-fp-css">
+.fp-link{display:block;margin:12px auto 0;background:none;border:0;color:var(--acc,#0071e3);font:600 13px inherit;font-family:inherit;cursor:pointer;padding:6px}
+.fp-link:hover{text-decoration:underline}
+#fp-ov{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+#fp-ov.on{display:flex}
+#fp-bx{width:min(420px,100%);background:var(--surf,#fff);color:var(--txt,#111);border:1px solid var(--bdr,#e5e5ea);border-radius:26px;padding:26px;box-shadow:0 28px 70px rgba(0,0,0,.3);animation:apPop .3s cubic-bezier(.32,.72,0,1) both}
+#fp-bx h3{margin:0 0 6px;font-size:22px;font-weight:700;letter-spacing:-.03em}
+#fp-bx p{margin:0 0 16px;font-size:14px;line-height:1.5;color:var(--txt2,#555)}
+#fp-bx input{width:100%;box-sizing:border-box;padding:13px 14px;border-radius:12px;border:1px solid var(--bdr,#ddd);background:var(--surf2,#f5f5f7);color:inherit;font:15px inherit;font-family:inherit;margin-bottom:12px}
+#fp-bx input:focus{outline:none;border-color:var(--acc,#0071e3);box-shadow:0 0 0 4px var(--acc-lt,rgba(0,113,227,.15))}
+.fp-b{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.fp-b button{border:0;border-radius:999px;padding:11px 20px;font:600 14px inherit;font-family:inherit;cursor:pointer;background:var(--surf2,#eee);color:var(--txt,#111)}
+.fp-b button.p{background:var(--acc,#0071e3);color:#fff}
+.fp-ok{padding:12px 14px;border-radius:12px;background:rgba(48,179,80,.12);color:#1f8a3b;font-size:14px;margin-bottom:12px}
+.fp-tmp{font:700 28px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-align:center;padding:16px;border-radius:14px;background:var(--surf2,#f5f5f7);margin-bottom:12px;user-select:all}
+.fp-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--surf2,#f5f5f7)}
+.fp-row b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.fp-row small{color:var(--txt3,#888);font-size:12px}
+.fp-row button{border:0;border-radius:999px;padding:7px 14px;background:var(--acc,#0071e3);color:#fff;font:600 12.5px inherit;font-family:inherit;cursor:pointer}
+</style>
+<script id="md-fp-js">
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const E=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const key=s=>String(s).replace(/[^A-Za-z0-9]/g,c=>'_'+c.charCodeAt(0).toString(16));
+const L={
+ hy:{link:'Մոռացել եմ գաղտնաբառս',t:'Գաղտնաբառի վերականգնում',p:'Մուտքագրեք ձեր մուտքանունը կամ email-ը։ Հայտը կուղարկվի ադմինիստրատորին, որը ձեզ կտա նոր ժամանակավոր գաղտնաբառ։',ph:'Մուտքանուն կամ email',send:'Ուղարկել հայտը',cancel:'Փակել',
+  done:'Եթե այդպիսի հաշիվ կա, հայտը ուղարկվել է ադմինիստրատորին։ Նա կկապվի ձեզ հետ կամ կհանձնի նոր գաղտնաբառը։',empty:'Գրեք մուտքանունը',wait:'Հայտ արդեն ուղարկվել է։ Խնդրում ենք սպասել մի քանի րոպե։',adm:'Ադմինի գաղտնաբառը չի վերականգնվում այստեղ։',
+  card:'Գաղտնաբառի հայտեր',reset:'Նոր գաղտնաբառ',tmp:'Ժամանակավոր գաղտնաբառ',tmpP:'Հանձնեք այն օգտատիրոջը և խնդրեք փոխել մուտք գործելուց հետո։',copy:'Պատճենել',copied:'Պատճենվեց',none:'Հայտեր չկան',gone:'Օգտատերը չի գտնվել. հայտը հեռացվեց'},
+ en:{link:'Forgot my password',t:'Password recovery',p:'Enter your username or email. The request goes to the administrator, who will give you a new temporary password.',ph:'Username or email',send:'Send request',cancel:'Close',
+  done:'If such an account exists, the request was sent to the administrator. They will contact you or hand over a new password.',empty:'Enter your username',wait:'A request was already sent. Please wait a few minutes.',adm:'The administrator password cannot be reset here.',
+  card:'Password requests',reset:'New password',tmp:'Temporary password',tmpP:'Give it to the user and ask them to change it after signing in.',copy:'Copy',copied:'Copied',none:'No requests',gone:'User not found; request removed'},
+ ru:{link:'Забыл(а) пароль',t:'Восстановление пароля',p:'Введите логин или email. Заявка уйдёт администратору, который выдаст вам новый временный пароль.',ph:'Логин или email',send:'Отправить заявку',cancel:'Закрыть',
+  done:'Если такой аккаунт существует, заявка отправлена администратору. Он свяжется с вами или передаст новый пароль.',empty:'Введите логин',wait:'Заявка уже отправлена. Подождите несколько минут.',adm:'Пароль администратора здесь не сбрасывается.',
+  card:'Заявки на пароль',reset:'Новый пароль',tmp:'Временный пароль',tmpP:'Передайте его пользователю и попросите сменить после входа.',copy:'Копировать',copied:'Скопировано',none:'Заявок нет',gone:'Пользователь не найден; заявка удалена'},
+ fr:{link:'Mot de passe oublié',t:'Récupération du mot de passe',p:'Saisissez votre identifiant ou e-mail. La demande est envoyée à l’administrateur qui vous donnera un mot de passe temporaire.',ph:'Identifiant ou e-mail',send:'Envoyer la demande',cancel:'Fermer',
+  done:'Si ce compte existe, la demande a été envoyée à l’administrateur. Il vous contactera ou vous remettra un nouveau mot de passe.',empty:'Saisissez l’identifiant',wait:'Une demande a déjà été envoyée. Patientez quelques minutes.',adm:'Le mot de passe administrateur ne se réinitialise pas ici.',
+  card:'Demandes de mot de passe',reset:'Nouveau mot de passe',tmp:'Mot de passe temporaire',tmpP:'Remettez-le à l’utilisateur et demandez-lui de le changer après connexion.',copy:'Copier',copied:'Copié',none:'Aucune demande',gone:'Utilisateur introuvable ; demande supprimée'}
+};
+const lg=()=>{try{return L[_lang]?_lang:'hy';}catch(e){return 'hy';}};
+const T=k=>(L[lg()]||L.hy)[k]||L.hy[k];
+const doc=()=>fsdb.collection(FS_COL).doc('pwreq');
+
+function ov(html){let o=$('fp-ov');if(!o){document.body.insertAdjacentHTML('beforeend','<div id="fp-ov"><div id="fp-bx"></div></div>');o=$('fp-ov');o.addEventListener('click',e=>{if(e.target===o)fpClose();});}
+  $('fp-bx').innerHTML=html;o.classList.add('on');}
+window.fpClose=function(){const o=$('fp-ov');if(o)o.classList.remove('on');};
+window.fpOpen=function(){
+  const pre=($('lu')&&$('lu').value.trim())||'';
+  ov('<h3>'+E(T('t'))+'</h3><p>'+E(T('p'))+'</p><input id="fp-u" type="text" autocomplete="username" placeholder="'+E(T('ph'))+'" value="'+E(pre)+'" onkeydown="if(event.key===\'Enter\')fpSend()"><div id="fp-m"></div><div class="fp-b"><button type="button" onclick="fpClose()">'+E(T('cancel'))+'</button><button type="button" class="p" onclick="fpSend()">'+E(T('send'))+'</button></div>');
+  setTimeout(()=>{const i=$('fp-u');if(i)i.focus();},50);
+};
+window.fpSend=async function(){
+  const u=($('fp-u').value||'').trim().toLowerCase(),m=$('fp-m');
+  if(!u){m.innerHTML='<div class="er" style="color:#ff3b30;margin-bottom:10px">'+E(T('empty'))+'</div>';return;}
+  if(u==='admin'){m.innerHTML='<div class="er" style="color:#ff3b30;margin-bottom:10px">'+E(T('adm'))+'</div>';return;}
+  try{const last=+localStorage.getItem('fp_last')||0;if(Date.now()-last<120000){m.innerHTML='<div class="er" style="color:#ff9f0a;margin-bottom:10px">'+E(T('wait'))+'</div>';return;}localStorage.setItem('fp_last',String(Date.now()));}catch(e){}
+  try{
+    // գրվում է միայն եթե այդպիսի օգտատեր կա (ուրիշներին չենք բացահայտում՝ պատասխանը միշտ նույնն է)
+    if(typeof DB!=='undefined'&&DB.users&&DB.users[u])await doc().set({r:{[key(u)]:{u:u,ts:Date.now()}}},{merge:true});
+  }catch(e){console.warn('fp',e);}
+  m.innerHTML='<div class="fp-ok">'+E(T('done'))+'</div>';
+};
+
+/* ---- link on the login form ---- */
+function addLink(){
+  const le=$('le');if(!le||document.getElementById('fp-link'))return;
+  le.insertAdjacentHTML('afterend','<button type="button" class="fp-link" id="fp-link" onclick="fpOpen()">'+E(T('link'))+'</button>');
+}
+addLink();
+const mo=new MutationObserver(()=>{const b=$('fp-link');if(!b)addLink();else if(b.textContent!==T('link'))b.textContent=T('link');});
+mo.observe(document.body,{childList:true,subtree:true});
+setInterval(()=>{const b=$('fp-link');if(b&&b.textContent!==T('link'))b.textContent=T('link');},1500);
+
+/* ---- admin: requests card on Home ---- */
+async function loadReq(){try{const s=await doc().get();return s.exists?(s.data().r||{}):{};}catch(e){return {};}}
+function tmpPass(){const a='abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789',r=new Uint32Array(8);crypto.getRandomValues(r);return [...r].map(x=>a[x%a.length]).join('');}
+window.fpReset=async function(k,u){
+  try{
+    if(!DB.users||!DB.users[u]){await doc().set({r:{[k]:firebase.firestore.FieldValue.delete()}},{merge:true});alert(T('gone'));fpMount();return;}
+    const p=tmpPass();DB.users[u].pass=p;await svSchool();
+    await doc().set({r:{[k]:firebase.firestore.FieldValue.delete()}},{merge:true});
+    ov('<h3>'+E(T('tmp'))+'</h3><p><b>'+E((DB.users[u].name)||u)+'</b> · '+E(u)+'<br>'+E(T('tmpP'))+'</p><div class="fp-tmp">'+E(p)+'</div><div class="fp-b"><button type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+p+'\');this.textContent=\''+E(T('copied'))+'\'">'+E(T('copy'))+'</button><button type="button" class="p" onclick="fpClose()">OK</button></div>');
+    fpMount();
+  }catch(e){console.error(e);alert('Error: '+(e&&e.message));}
+};
+async function fpMount(){
+  try{
+    if(typeof CU==='undefined'||!CU||CU.role!=='admin'||CU.username!=='admin')return;
+    const g=document.querySelector('#aphome-b .ap-grid');if(!g)return;
+    const r=await loadReq(),ks=Object.keys(r);
+    let c=$('fp-card');if(c)c.remove();
+    if(!ks.length)return;
+    g.insertAdjacentHTML('afterbegin','<section class="ap-c w12" id="fp-card" style="--i:0"><div class="ap-ch"><i class="ap-ico-r">'+(window.__u2ic?window.__u2ic('lock',20):'')+'</i><b>'+E(T('card'))+' · '+ks.length+'</b></div>'
+     +ks.map(k=>{const u=(r[k]&&r[k].u)||'';const us=(DB.users||{})[u]||{};return '<div class="fp-row"><b>'+E(us.name||u)+' <small>'+E(u)+'</small></b><small>'+E(new Date(r[k].ts||0).toLocaleString())+'</small><button type="button" data-k="'+E(k)+'" data-u="'+E(u)+'" onclick="fpReset(this.dataset.k,this.dataset.u)">'+E(T('reset'))+'</button></div>';}).join('')+'</section>');
+  }catch(e){console.warn(e);}
+}
+if(typeof window.apHomeRender==='function'){const _r=window.apHomeRender;window.apHomeRender=async function(){const x=await _r.apply(this,arguments);fpMount();return x;};}
+})();
+</script>
 </body>
 </html>
 

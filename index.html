@@ -13,6 +13,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" onerror="window._noAuth=1"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js" onerror="window._noStorage=1"></script>
 <style>
 /* =======================================
@@ -4347,7 +4348,7 @@ async function svTch(k){
   const h=$('teh'+k)?.value.trim();
   const phone=$('teph'+k)?.value.trim();
   if(!n||!p)return;
-  DB.users[k]={...DB.users[k],name:n,pass:p,subject:s,classes:c,homeroom:h||null,phone:phone||''};
+  DB.users[k]={...DB.users[k],name:n,pass:(DB.users[k]&&DB.users[k].authMigrated)?undefined:p,subject:s,classes:c,homeroom:h||null,phone:phone||''};
   sLoad('Saving...');await svSchool();hLoad();flash();showPg('atch');
 }
 async function bulkImportTch(){
@@ -4468,7 +4469,7 @@ async function svStu(k){
   sLoad('Saving...');
   try{
     if(file)await phSet(k,await phResize(file,256));
-    DB.users[k]={...DB.users[k],name:n,pass:p,class:c,dob:dob};
+    DB.users[k]={...DB.users[k],name:n,pass:(DB.users[k]&&DB.users[k].authMigrated)?undefined:p,class:c,dob:dob};
     if(!dob)delete DB.users[k].dob;
     await svSchool();
   }catch(e){hLoad();alert('❌ '+(e&&e.message||'Save failed'));return;}
@@ -5890,15 +5891,15 @@ async function mdSaveAccount(){
     }
     const op=$('ac-op').value,np=$('ac-np').value,np2=$('ac-np2').value;
     if(op||np||np2){
-      if(op!==r.pass){mdErr('Ընթացիկ գաղտնաբառը սխալ է։',['ac-op']);return;}
+      if(r.authMigrated?!(await window.__pwAuth.verify(op)):op!==r.pass){mdErr('Ընթացիկ գաղտնաբառը սխալ է։',['ac-op']);return;}
       if(!vPass(np)){mdErr('Նոր գաղտնաբառը պետք է ունենա մեծատառ, փոքրատառ, թիվ, նշան և առնվազն 8 նիշ։',['ac-np']);return;}
       if(np!==np2){mdErr('Գաղտնաբառերը չեն համընկնում։',['ac-np2']);return;}
-      newPass=np;
+      newPass=np;window.__pwOp=op;
     }
   }
   r.phone=phone;CU.phone=phone;
   if(newLogin){r.login=newLogin;CU.login=newLogin;}
-  if(newPass){r.pass=newPass;CU.pass=newPass;}
+  if(newPass){if(r.authMigrated){try{await window.__pwAuth.change(window.__pwOp,newPass);}catch(e){mdErr('Գաղտնաբառը չհաջողվեց փոխել։ Փորձեք կրկին։');return;}}else{r.pass=newPass;CU.pass=newPass;}}
   sLoad('Saving...');
   try{await mdSaveDB();}catch(e){hLoad();return;}
   hLoad();mdUbarRender();mdCloseModal();flash();
@@ -15416,6 +15417,16 @@ function tmpPass(){const a='abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ234567
 window.fpReset=async function(k,u){
   try{
     if(!DB.users||!DB.users[u]){await doc().set({r:{[k]:firebase.firestore.FieldValue.delete()}},{merge:true});alert(T('gone'));fpMount();return;}
+    if(DB.users[u].authMigrated===true&&!DB.users[u].pass){
+      // Հաշիվը Firebase Authentication-ում է. գաղտնաբառը Firestore-ում չի գրվում
+      const em=window.__pwEmail?window.__pwEmail(u):'';
+      const real=String(u).includes('@');
+      if(real&&firebase.auth){
+        try{await firebase.auth().sendPasswordResetEmail(u);await doc().set({r:{[k]:firebase.firestore.FieldValue.delete()}},{merge:true});alert('Վերականգնման նամակը ուղարկվեց՝ '+u);fpMount();return;}catch(e){alert('Չհաջողվեց ուղարկել նամակը՝ '+(e&&e.code||e));return;}
+      }
+      alert('Այս հաշիվը Firebase Authentication-ում է ('+em+'), և նրա գաղտնաբառը չի կարելի փոխել այստեղից։\nԵթե օգտատիրոջ email-ը իրական է, Firebase Console → Authentication → Users → '+em+' → «Reset password»։ Ուրիշ դեպքում գաղտնաբառը կարելի է վերականգնել միայն Auth-ի միջոցով։');
+      return;
+    }
     const p=tmpPass();DB.users[u].pass=p;await svSchool();
     await doc().set({r:{[k]:firebase.firestore.FieldValue.delete()}},{merge:true});
     ov('<h3>'+E(T('tmp'))+'</h3><p><b>'+E((DB.users[u].name)||u)+'</b> · '+E(u)+'<br>'+E(T('tmpP'))+'</p><div class="fp-tmp">'+E(p)+'</div><div class="fp-b"><button type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+p+'\');this.textContent=\''+E(T('copied'))+'\'">'+E(T('copy'))+'</button><button type="button" class="p" onclick="fpClose()">OK</button></div>');
@@ -15434,6 +15445,56 @@ async function fpMount(){
   }catch(e){console.warn(e);}
 }
 if(typeof window.apHomeRender==='function'){const _r=window.apHomeRender;window.apHomeRender=async function(){const x=await _r.apply(this,arguments);fpMount();return x;};}
+})();
+</script>
+
+<script id="md-authlogin-js">
+/* Մուտք Firebase Authentication-ով այն հաշիվների համար, որոնք արդեն տեղափոխվել են Auth (authMigrated:true, Firestore-ում գաղտնաբառ չկա).
+   Մնացած հաշիվները մտնում են նախկին եղանակով։ Գաղտնաբառեր չեն գրվում, չեն փոխվում և չեն զրոյացվում։ */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+let auth=null;try{if(firebase.auth)auth=firebase.auth();}catch(e){console.warn('auth',e);}
+// նույն կապը՝ Firestore-ի բանալի → Auth email, ինչ օգտագործվել է տեղափոխման ժամանակ
+const em=k=>{const s=String(k).toLowerCase().replace(/[^a-z0-9._+\-@]/g,c=>'_'+c.charCodeAt(0).toString(16));return s.includes('@')?s:s+'@mds.school';};
+window.__pwEmail=em;
+const M={hy:{off:'Firebase Authentication-ը անհասանելի է կամ Email/Password-ը միացված չէ։ Դիմեք ադմինիստրատորին։',many:'Չափազանց շատ փորձեր։ Սպասեք և կրկին փորձեք։'},
+ en:{off:'Firebase Authentication is unavailable or Email/Password is not enabled. Contact the administrator.',many:'Too many attempts. Wait and try again.'},
+ ru:{off:'Firebase Authentication недоступен или Email/Password не включён. Обратитесь к администратору.',many:'Слишком много попыток. Подождите.'},
+ fr:{off:'Firebase Authentication est indisponible ou Email/Password n’est pas activé. Contactez l’administrateur.',many:'Trop de tentatives. Patientez.'}};
+const T=k=>{let l='hy';try{if(M[_lang])l=_lang;}catch(e){}return M[l][k];};
+window.__pwAuth={
+  async verify(pw){try{const cu=auth.currentUser;await cu.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(cu.email,pw));return true;}catch(e){return false;}},
+  async change(op,np){const cu=auth.currentUser;if(!cu)throw new Error('no-auth');await cu.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(cu.email,op));await cu.updatePassword(np);}
+};
+const _l=window.login;
+window.login=function(){
+  const self=this,args=arguments;
+  try{
+    const u=(($('lu')||{}).value||'').trim().toLowerCase(),p=(($('lp')||{}).value||'');
+    if(auth&&u&&p&&u!=='admin'&&typeof DB!=='undefined'&&DB&&DB.users&&!DB.maintenance){
+      const c=Object.entries(DB.users).filter(([k,v])=>v&&v.authMigrated===true&&!v.pass&&(k.replace(/_t$|_s$/,'').toLowerCase()===u||k.toLowerCase()===u||(v.login&&String(v.login).toLowerCase()===u)));
+      if(c.length){
+        (async()=>{
+          let code='';
+          for(const [k,v] of c){
+            try{
+              await auth.signInWithEmailAndPassword(em(k),p);
+              const o={...v,username:k};delete o.pass;CU=o;$('lp').value='';startApp();return;
+            }catch(e){code=(e&&e.code)||code;}
+          }
+          const er=$('le');
+          if(code==='auth/too-many-requests'&&er){er.textContent=T('many');return;}
+          if(/operation-not-allowed|configuration-not-found|network-request-failed|invalid-api-key/.test(code)&&er){er.textContent=T('off');return;}
+          _l.apply(self,args);   // սովորական «սխալ գաղտնաբառ» հաղորդագրությունը
+        })();
+        return;
+      }
+    }
+  }catch(e){console.error(e);}
+  return _l.apply(this,arguments);
+};
+const _lo=window.logout;if(typeof _lo==='function')window.logout=function(){try{if(auth)auth.signOut();}catch(e){}return _lo.apply(this,arguments);};
 })();
 </script>
 </body>

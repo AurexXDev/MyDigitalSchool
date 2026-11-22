@@ -15435,6 +15435,216 @@ async function fpMount(){
 if(typeof window.apHomeRender==='function'){const _r=window.apHomeRender;window.apHomeRender=async function(){const x=await _r.apply(this,arguments);fpMount();return x;};}
 })();
 </script>
+
+<style id="md-pw-css">
+#pw-gate,#pwm-ov,#pw-how{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(8,10,20,.55);-webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3)}
+#pw-gate{z-index:2147483200}#pwm-ov{z-index:100001;overflow:auto}#pw-how{z-index:100002}
+#pw-gate.on,#pwm-ov.on,#pw-how.on{display:flex}
+.pw-bx{width:min(440px,100%);background:var(--surf,#fff);color:var(--txt,#111);border:1px solid var(--bdr,#e5e5ea);border-radius:28px;padding:30px 26px;box-shadow:0 30px 80px rgba(0,0,0,.35);animation:pwIn .45s cubic-bezier(.32,.72,0,1) both;max-height:92vh;overflow:auto}
+.pw-bx.w{width:min(640px,100%)}
+@keyframes pwIn{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+.pw-lg{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;letter-spacing:.02em;color:var(--txt2,#666);margin-bottom:14px}
+.pw-lg i{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#0a84ff,#7d5cff);color:#fff;font-style:normal;font-size:15px}
+.pw-bx h3{margin:0 0 8px;font-size:24px;font-weight:700;letter-spacing:-.03em}
+.pw-bx p{margin:0 0 16px;font-size:14px;line-height:1.55;color:var(--txt2,#555)}
+.pw-f{position:relative;margin-bottom:12px}
+.pw-f label{display:block;font-size:12px;font-weight:600;color:var(--txt2,#666);margin:0 0 6px 4px}
+.pw-f input[type=password],.pw-f input[type=text]{width:100%;box-sizing:border-box;padding:14px 48px 14px 16px;border-radius:14px;border:1.5px solid var(--bdr,#ddd);background:var(--surf2,#f5f5f7);color:inherit;font:15px inherit;font-family:inherit;transition:.2s}
+.pw-f input:focus{outline:none;border-color:#0a84ff;box-shadow:0 0 0 4px rgba(10,132,255,.18)}
+.pw-eye{position:absolute;right:8px;bottom:6px;width:36px;height:36px;border:0;border-radius:10px;background:none;cursor:pointer;color:var(--txt2,#666);font-size:17px}
+.pw-eye:hover{background:var(--surf3,rgba(128,128,128,.15))}
+.pw-er{min-height:18px;color:#ff453a;font-size:13px;margin:2px 4px 10px}
+.pw-btn{width:100%;border:0;border-radius:14px;padding:15px;font:700 15px inherit;font-family:inherit;color:#fff;cursor:pointer;background:linear-gradient(135deg,#0a84ff,#6e5bff);box-shadow:0 8px 22px rgba(10,132,255,.35);transition:.2s}
+.pw-btn:hover{transform:translateY(-1px)}.pw-btn:disabled{opacity:.55;cursor:wait;transform:none}
+.pw-btn.s{background:var(--surf2,#eee);color:var(--txt,#111);box-shadow:none;margin-top:8px}
+.pw-btn.d{background:linear-gradient(135deg,#ff453a,#ff6b3d);box-shadow:0 8px 22px rgba(255,69,58,.3)}
+.pw-ok{text-align:center;padding:10px 0}.pw-ok b{display:block;font-size:44px;margin-bottom:10px;animation:pwIn .5s both}
+.pw-note{margin:0 0 14px;padding:14px 16px;border-radius:18px;background:linear-gradient(135deg,rgba(10,132,255,.14),rgba(125,92,255,.14));border:1px solid rgba(10,132,255,.28);animation:pwIn .5s both}
+.pw-note b{display:block;font-size:14px;margin-bottom:4px}.pw-note span{display:block;font-size:13px;line-height:1.5;color:var(--txt2,#555)}
+.pw-note button{margin-top:10px;border:0;border-radius:999px;padding:8px 16px;background:#0a84ff;color:#fff;font:600 13px inherit;font-family:inherit;cursor:pointer}
+.pw-st{list-style:none;padding:0;margin:0 0 16px;counter-reset:s}
+.pw-st li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;padding:10px 0;font-size:14px;line-height:1.5;color:var(--txt,#111)}
+.pw-st li:before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;background:#0a84ff;color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.pwm-tools{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.pwm-tools select,.pwm-tools input{flex:1;min-width:120px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--bdr,#ddd);background:var(--surf2,#f5f5f7);color:inherit;font:inherit;font-size:13px}
+.pwm-list{max-height:240px;overflow:auto;border:1px solid var(--bdr,#e5e5ea);border-radius:14px;margin-bottom:12px}
+.pwm-list label{display:flex;gap:10px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--bdr,#eee);font-size:13px;cursor:pointer}
+.pwm-list label:last-child{border:0}.pwm-list small{color:var(--txt3,#888);margin-left:auto}
+.pwm-sum{padding:12px 14px;border-radius:14px;background:var(--surf2,#f5f5f7);font-size:14px;font-weight:600;margin-bottom:12px}
+</style>
+<script id="md-pw-js">
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const E=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const L={
+hy:{ttl:'MyDigitalSchool',nt:'Ձեր հաշվի գաղտնաբառը թարմացվել է ադմինիստրատորի կողմից։ Մուտք գործելու համար օգտագործեք ձեզ տրամադրված ժամանակավոր գաղտնաբառը, այնուհետև սահմանեք ձեր անձնական գաղտնաբառը։',how:'Ինչպե՞ս մուտք գործել',
+ s1:'Մուտքի դաշտում գրեք ձեր սովորական մուտքանունը կամ email-ը։',s2:'Գաղտնաբառի դաշտում գրեք ադմինիստրատորից ստացած ժամանակավոր գաղտնաբառը։',s3:'Սեղմեք «Մուտք»։ Կբացվի «Ստեղծեք ձեր նոր գաղտնաբառը» պատուհանը։',s4:'Սահմանեք ձեր անձնական գաղտնաբառը և հաստատեք՝ հետո մուտք գործեք նորով։',close:'Փակել',
+ g1:'Ստեղծեք ձեր նոր գաղտնաբառը',g2:'Ժամանակավոր գաղտնաբառը պետք է փոխվի։ Առանց դրա չեք կարող շարունակել։',np:'Նոր գաղտնաբառ',np2:'Կրկնել նոր գաղտնաբառը',ok:'Հաստատել',out:'Դուրս գալ',
+ e1:'Գաղտնաբառը պետք է ունենա մեծատառ, փոքրատառ, թիվ, նշան և առնվազն 8 նիշ։',e2:'Գաղտնաբառերը չեն համընկնում։',e3:'Նոր գաղտնաբառը պետք է տարբերվի ժամանակավորից։',e4:'Չհաջողվեց պահպանել։ Փորձեք կրկին։',succ:'Ձեր գաղտնաբառը հաջողությամբ փոփոխվել է։',succ2:'Այժմ մուտք գործեք նոր գաղտնաբառով։'},
+en:{ttl:'MyDigitalSchool',nt:'Your account password was updated by the administrator. Use the temporary password you were given to sign in, then set your own personal password.',how:'How to sign in',
+ s1:'Enter your usual username or email.',s2:'Enter the temporary password you received from the administrator.',s3:'Press “Sign In”. The “Create your new password” window will open.',s4:'Set your personal password, confirm it, then sign in with the new one.',close:'Close',
+ g1:'Create your new password',g2:'Your temporary password must be changed. You cannot continue without it.',np:'New password',np2:'Repeat new password',ok:'Confirm',out:'Sign out',
+ e1:'Password needs an uppercase letter, lowercase letter, digit, symbol and at least 8 characters.',e2:'Passwords do not match.',e3:'The new password must differ from the temporary one.',e4:'Could not save. Please try again.',succ:'Your password was changed successfully.',succ2:'Now sign in with your new password.'},
+ru:{ttl:'MyDigitalSchool',nt:'Пароль вашей учётной записи был обновлён администратором. Для входа используйте выданный вам временный пароль, затем задайте свой личный пароль.',how:'Как войти',
+ s1:'Введите свой обычный логин или email.',s2:'Введите временный пароль, полученный от администратора.',s3:'Нажмите «Войти». Откроется окно «Создайте новый пароль».',s4:'Задайте личный пароль, подтвердите его и войдите с ним.',close:'Закрыть',
+ g1:'Создайте новый пароль',g2:'Временный пароль необходимо сменить. Без этого продолжить нельзя.',np:'Новый пароль',np2:'Повторите новый пароль',ok:'Подтвердить',out:'Выйти',
+ e1:'Пароль: заглавная и строчная буквы, цифра, символ и не менее 8 символов.',e2:'Пароли не совпадают.',e3:'Новый пароль должен отличаться от временного.',e4:'Не удалось сохранить. Повторите попытку.',succ:'Ваш пароль успешно изменён.',succ2:'Теперь войдите с новым паролем.'},
+fr:{ttl:'MyDigitalSchool',nt:'Le mot de passe de votre compte a été mis à jour par l’administrateur. Connectez-vous avec le mot de passe temporaire fourni, puis définissez votre mot de passe personnel.',how:'Comment se connecter',
+ s1:'Saisissez votre identifiant ou e-mail habituel.',s2:'Saisissez le mot de passe temporaire reçu de l’administrateur.',s3:'Cliquez sur « Connexion ». La fenêtre « Créez votre nouveau mot de passe » s’ouvre.',s4:'Définissez votre mot de passe personnel, confirmez-le, puis reconnectez-vous.',close:'Fermer',
+ g1:'Créez votre nouveau mot de passe',g2:'Votre mot de passe temporaire doit être changé. Impossible de continuer sans cela.',np:'Nouveau mot de passe',np2:'Répétez le mot de passe',ok:'Confirmer',out:'Se déconnecter',
+ e1:'Le mot de passe doit contenir majuscule, minuscule, chiffre, symbole et 8 caractères minimum.',e2:'Les mots de passe ne correspondent pas.',e3:'Le nouveau mot de passe doit différer du temporaire.',e4:'Échec de l’enregistrement. Réessayez.',succ:'Votre mot de passe a été modifié avec succès.',succ2:'Connectez-vous avec le nouveau mot de passe.'}};
+const lg=()=>{try{return L[_lang]?_lang:'hy';}catch(e){return 'hy';}};
+const T=k=>(L[lg()]||L.hy)[k]||L.hy[k];
+const A={hy:{card:'Գաղտնաբառերի կառավարում',t:'Գաղտնաբառերի զանգվածային վերականգնում',p:'Մուտքագրեք ձեր ընտրած ժամանակավոր գաղտնաբառը։ Ծրագիրը ինքնուրույն գաղտնաբառ չի ստեղծում։ Ընտրված օգտատերերը մուտքից հետո պարտադիր կփոխեն այն։',tp:'Ժամանակավոր գաղտնաբառ',tp2:'Կրկնել ժամանակավոր գաղտնաբառը',all:'Բոլոր դերերը',stu:'Աշակերտներ',tch:'Ուսուցիչներ',par:'Ծնողներ',q:'Որոնել…',sel:'Ընտրել բոլորը (ցուցադրվածները)',run:'Վերականգնել գաղտնաբառերը',aff:n=>'Ազդվելու է '+n+' հաշիվ',cf:n=>'Հաստատե՞լ՝ '+n+' հաշվի գաղտնաբառը կփոխարինվի ձեր մուտքագրածով, և նրանք պարտավոր կլինեն փոխել այն։',yes:'Այո, վերականգնել',no:'Չեղարկել',e0:'Ընտրեք առնվազն մեկ հաշիվ։',done:n=>n+' հաշվի գաղտնաբառը վերականգնվեց։ Հանձնեք ժամանակավոր գաղտնաբառը օգտատերերին անվտանգ եղանակով։',clr:'Հանել մուտքի էջի հաղորդագրությունը',fail:'Չհաջողվեց պահպանել',nosub:'Այս դիտարկիչը չի աջակցում անվտանգ հեշավորում (պահանջվում է https)։'},
+ en:{card:'Password management',t:'Bulk password reset',p:'Enter a temporary password of your choice. The app never generates one. Selected users must change it after signing in.',tp:'Temporary password',tp2:'Repeat temporary password',all:'All roles',stu:'Students',tch:'Teachers',par:'Parents',q:'Search…',sel:'Select all (shown)',run:'Reset passwords',aff:n=>n+' account(s) will be affected',cf:n=>'Confirm: the passwords of '+n+' account(s) will be replaced by the one you entered and they must change it.',yes:'Yes, reset',no:'Cancel',e0:'Select at least one account.',done:n=>n+' account(s) reset. Hand the temporary password to users in a safe way.',clr:'Remove login-page notice',fail:'Could not save',nosub:'This browser has no secure hashing (https required).'}};
+const AT=k=>(A[lg()]||A.en)[k]||A.en[k];
+const isAdmin=()=>typeof CU!=='undefined'&&CU&&CU.role==='admin'&&CU.username==='admin';
+async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+const rnd=()=>{const a=new Uint8Array(16);crypto.getRandomValues(a);return [...a].map(x=>x.toString(16).padStart(2,'0')).join('');};
+const eye=(id)=>'<button type="button" class="pw-eye" aria-label="show/hide" onclick="(function(b){var i=document.getElementById(\''+id+'\');i.type=i.type===\'password\'?\'text\':\'password\';b.textContent=i.type===\'password\'?\'👁\':\'🙈\';})(this)">👁</button>';
+
+/* ===== login: accounts with a hashed temporary password ===== */
+const _l=window.login;
+window.login=function(){
+  try{
+    const u=(($('lu')||{}).value||'').trim().toLowerCase(),p=(($('lp')||{}).value||'').trim();
+    if(u&&p&&u!=='admin'&&typeof DB!=='undefined'&&DB&&DB.users&&!DB.maintenance&&window.crypto&&crypto.subtle){
+      const c=Object.entries(DB.users).filter(([k,v])=>v&&!v.pass&&v.ph&&v.salt&&(k.replace(/_t$|_s$/,'').toLowerCase()===u||(v.login&&String(v.login).toLowerCase()===u)));
+      if(c.length){
+        const self=this,args=arguments;
+        (async()=>{
+          for(const [k,v] of c){
+            if(await sha(v.salt+p)===v.ph){const o={...v,username:k};delete o.ph;delete o.salt;CU=o;startApp();return;}
+          }
+          _l.apply(self,args);
+        })();
+        return;
+      }
+    }
+  }catch(e){console.error(e);}
+  return _l.apply(this,arguments);
+};
+
+/* ===== forced change window (source of truth = DB, so refresh / other pages cannot bypass it) ===== */
+function must(){return typeof CU!=='undefined'&&CU&&CU.role!=='admin'&&typeof DB!=='undefined'&&DB&&DB.users&&DB.users[CU.username]&&DB.users[CU.username].mc===true;}
+function gate(){
+  if(!must()){const g=$('pw-gate');if(g&&!g._busy)g.classList.remove('on');return;}
+  let g=$('pw-gate');
+  if(!g){document.body.insertAdjacentHTML('beforeend','<div id="pw-gate" role="dialog" aria-modal="true"></div>');g=$('pw-gate');}
+  if(!g.classList.contains('on')||!g.firstChild){
+    g.innerHTML='<div class="pw-bx"><div class="pw-lg"><i>🎓</i>MyDigitalSchool</div><h3>'+E(T('g1'))+'</h3><p>'+E(T('g2'))+'</p>'
+     +'<div class="pw-f"><label>'+E(T('np'))+'</label><input id="pwg1" type="password" autocomplete="new-password">'+eye('pwg1')+'</div>'
+     +'<div class="pw-f"><label>'+E(T('np2'))+'</label><input id="pwg2" type="password" autocomplete="new-password" onkeydown="if(event.key===\'Enter\')pwGateOk()">'+eye('pwg2')+'</div>'
+     +'<div class="pw-er" id="pwg-e"></div><button type="button" class="pw-btn" id="pwg-b" onclick="pwGateOk()">'+E(T('ok'))+'</button><button type="button" class="pw-btn s" onclick="logout()">'+E(T('out'))+'</button></div>';
+    g.classList.add('on');setTimeout(()=>{const i=$('pwg1');if(i)i.focus();},80);
+  }
+}
+window.pwGateOk=async function(){
+  const a=$('pwg1').value,b=$('pwg2').value,er=$('pwg-e'),btn=$('pwg-b'),g=$('pw-gate');
+  er.textContent='';
+  if(!vPass(a)){er.textContent=T('e1');return;}
+  if(a!==b){er.textContent=T('e2');return;}
+  const k=CU.username,u=DB.users[k];if(!u)return;
+  try{if(u.ph&&await sha(u.salt+a)===u.ph){er.textContent=T('e3');return;}}catch(e){}
+  const bak={pass:u.pass,ph:u.ph,salt:u.salt,mc:u.mc,pwAt:u.pwAt};
+  btn.disabled=true;g._busy=true;
+  try{
+    u.pass=a;delete u.ph;delete u.salt;delete u.mc;u.pwAt=Date.now();
+    await svSchool();
+  }catch(e){
+    console.error(e);Object.keys(bak).forEach(x=>{if(bak[x]===undefined)delete u[x];else u[x]=bak[x];});
+    btn.disabled=false;g._busy=false;er.textContent=T('e4');return;
+  }
+  g.querySelector('.pw-bx').innerHTML='<div class="pw-ok"><b>✅</b><h3>'+E(T('succ'))+'</h3><p>'+E(T('succ2'))+'</p></div>';
+  setTimeout(()=>{g._busy=false;g.classList.remove('on');g.innerHTML='';const un=k.replace(/_t$|_s$/,'');logout();const lu=$('lu');if(lu)lu.value=un;},1800);
+};
+const _sa=window.startApp;if(typeof _sa==='function')window.startApp=function(){const r=_sa.apply(this,arguments);gate();return r;};
+const _sp=window.showPg;if(typeof _sp==='function')window.showPg=function(){if(must()){gate();return;}return _sp.apply(this,arguments);};
+setInterval(()=>{try{gate();}catch(e){}},600);
+
+/* ===== login page notice + "How to sign in" ===== */
+function note(){
+  const lf=$('lf'),has=typeof DB!=='undefined'&&DB&&DB.users&&Object.values(DB.users).some(v=>v&&v.mc===true);
+  let n=$('pw-note');
+  if(!lf||!has){if(n)n.remove();return;}
+  if(!n){const h=lf.querySelector('h2');n=document.createElement('div');n.id='pw-note';n.className='pw-note';(h?h.parentNode:lf).insertBefore(n,h?h.nextSibling:lf.firstChild);}
+  const sig=lg();if(n.dataset.l!==sig){n.dataset.l=sig;n.innerHTML='<b>'+E(T('ttl'))+'</b><span>'+E(T('nt'))+'</span><button type="button" onclick="pwHow()">'+E(T('how'))+'</button>';}
+}
+window.pwHow=function(){
+  let o=$('pw-how');if(!o){document.body.insertAdjacentHTML('beforeend','<div id="pw-how"></div>');o=$('pw-how');o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');});}
+  o.innerHTML='<div class="pw-bx"><div class="pw-lg"><i>🎓</i>MyDigitalSchool</div><h3>'+E(T('how'))+'</h3><ol class="pw-st"><li>'+E(T('s1'))+'</li><li>'+E(T('s2'))+'</li><li>'+E(T('s3'))+'</li><li>'+E(T('s4'))+'</li></ol><button type="button" class="pw-btn" onclick="document.getElementById(\'pw-how\').classList.remove(\'on\')">'+E(T('close'))+'</button></div>';
+  o.classList.add('on');
+};
+setInterval(()=>{try{note();}catch(e){}},900);
+
+/* ===== admin: password management ===== */
+let sel=new Set();
+function rows(){
+  const f=($('pwm-r')||{}).value||'',q=((($('pwm-q')||{}).value)||'').trim().toLowerCase();
+  return Object.entries((DB&&DB.users)||{}).filter(([k,v])=>v&&k!=='admin'&&v.role!=='admin'&&(!f||v.role===f)&&(!q||(k+' '+(v.name||'')).toLowerCase().includes(q)));
+}
+function paintList(){
+  const r=rows();
+  $('pwm-l').innerHTML=r.map(([k,v])=>'<label><input type="checkbox" data-k="'+E(k)+'"'+(sel.has(k)?' checked':'')+'> <span>'+E(v.name||k)+'</span><small>'+E(k.replace(/_t$|_s$/,''))+' · '+E(v.role||'')+'</small></label>').join('');
+  $('pwm-l').querySelectorAll('input').forEach(c=>c.onchange=()=>{c.checked?sel.add(c.dataset.k):sel.delete(c.dataset.k);paintSum();});
+  paintSum();
+}
+function paintSum(){const n=[...sel].filter(k=>DB.users[k]).length;$('pwm-s').textContent=AT('aff')(n);}
+window.pwmOpen=function(){
+  if(!isAdmin())return;sel=new Set();
+  let o=$('pwm-ov');if(!o){document.body.insertAdjacentHTML('beforeend','<div id="pwm-ov"></div>');o=$('pwm-ov');}
+  o.innerHTML='<div class="pw-bx w"><div class="pw-lg"><i>🔑</i>MyDigitalSchool</div><h3>'+E(AT('t'))+'</h3><p>'+E(AT('p'))+'</p>'
+   +'<div class="pw-f"><label>'+E(AT('tp'))+'</label><input id="pwm-a" type="password" autocomplete="new-password">'+eye('pwm-a')+'</div>'
+   +'<div class="pw-f"><label>'+E(AT('tp2'))+'</label><input id="pwm-b" type="password" autocomplete="new-password">'+eye('pwm-b')+'</div>'
+   +'<div class="pwm-tools"><select id="pwm-r"><option value="">'+E(AT('all'))+'</option><option value="student">'+E(AT('stu'))+'</option><option value="teacher">'+E(AT('tch'))+'</option><option value="parent">'+E(AT('par'))+'</option></select><input id="pwm-q" placeholder="'+E(AT('q'))+'"></div>'
+   +'<label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:0 4px 8px"><input type="checkbox" id="pwm-all"> '+E(AT('sel'))+'</label>'
+   +'<div class="pwm-list" id="pwm-l"></div><div class="pwm-sum" id="pwm-s"></div><div class="pw-er" id="pwm-e"></div>'
+   +'<div id="pwm-act"><button type="button" class="pw-btn" onclick="pwmAsk()">'+E(AT('run'))+'</button>'
+      +'<button type="button" class="pw-btn s" onclick="pwmClose()">'+E(T('close'))+'</button></div></div>';
+  o.classList.add('on');
+  $('pwm-r').onchange=$('pwm-q').oninput=paintList;
+  $('pwm-all').onchange=e=>{rows().forEach(([k])=>e.target.checked?sel.add(k):sel.delete(k));paintList();};
+  paintList();
+};
+window.pwmClose=function(){const o=$('pwm-ov');if(o){o.classList.remove('on');o.innerHTML='';}};
+window.pwmAsk=function(){
+  if(!isAdmin())return;const er=$('pwm-e');er.textContent='';
+  const a=$('pwm-a').value,b=$('pwm-b').value;
+  if(!vPass(a)){er.textContent=T('e1');return;}
+  if(a!==b){er.textContent=T('e2');return;}
+  const n=[...sel].filter(k=>DB.users[k]).length;if(!n){er.textContent=AT('e0');return;}
+  if(!(window.crypto&&crypto.subtle)){er.textContent=AT('nosub');return;}
+  $('pwm-act').innerHTML='<div class="pwm-sum">'+E(AT('cf')(n))+'</div><button type="button" class="pw-btn d" id="pwm-go" onclick="pwmGo()">'+E(AT('yes'))+'</button><button type="button" class="pw-btn s" onclick="pwmOpen()">'+E(AT('no'))+'</button>';
+};
+window.pwmGo=async function(){
+  if(!isAdmin())return;const btn=$('pwm-go');btn.disabled=true;
+  const a=$('pwm-a').value,keys=[...sel].filter(k=>DB.users[k]&&DB.users[k].role!=='admin'),bak={};
+  try{
+    for(const k of keys){
+      const u=DB.users[k];bak[k]={pass:u.pass,ph:u.ph,salt:u.salt,mc:u.mc,pwAt:u.pwAt};
+      const s=rnd();u.salt=s;u.ph=await sha(s+a);delete u.pass;u.mc=true;u.pwAt=Date.now();
+    }
+    await svSchool();
+  }catch(e){
+    console.error(e);Object.keys(bak).forEach(k=>{const u=DB.users[k],o=bak[k];Object.keys(o).forEach(x=>{if(o[x]===undefined)delete u[x];else u[x]=o[x];});});
+    $('pwm-act').innerHTML='<div class="pw-er">'+E(AT('fail'))+'</div><button type="button" class="pw-btn s" onclick="pwmOpen()">OK</button>';return;
+  }
+  $('pwm-a').value='';$('pwm-b').value='';
+  $('pwm-act').innerHTML='<div class="pw-ok"><b>✅</b><p>'+E(AT('done')(keys.length))+'</p></div><button type="button" class="pw-btn" onclick="pwmClose()">OK</button>';
+};
+
+/* admin entry: card on Home */
+function mountCard(){
+  try{
+    if(!isAdmin()||$('pw-card'))return;const g=document.querySelector('#aphome-b .ap-grid');if(!g)return;
+    g.insertAdjacentHTML('afterbegin','<section class="ap-c w12" id="pw-card" style="--i:0"><div class="ap-ch"><b>🔑 '+E(AT('card'))+'</b></div><div style="padding:0 4px 4px"><button type="button" class="pw-btn" style="width:auto;padding:11px 20px" onclick="pwmOpen()">'+E(AT('run'))+'</button></div></section>');
+  }catch(e){}
+}
+if(typeof window.apHomeRender==='function'){const _r=window.apHomeRender;window.apHomeRender=async function(){const x=await _r.apply(this,arguments);mountCard();return x;};}
+setInterval(mountCard,1500);
+})();
+</script>
 </body>
 </html>
 

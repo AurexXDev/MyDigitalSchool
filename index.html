@@ -13,7 +13,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" onerror="window._noAuth=1"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js" onerror="window._noStorage=1"></script>
 <style>
 /* =======================================
@@ -4348,7 +4347,7 @@ async function svTch(k){
   const h=$('teh'+k)?.value.trim();
   const phone=$('teph'+k)?.value.trim();
   if(!n||!p)return;
-  DB.users[k]={...DB.users[k],name:n,pass:(DB.users[k]&&DB.users[k].authMigrated)?undefined:p,subject:s,classes:c,homeroom:h||null,phone:phone||''};
+  DB.users[k]={...DB.users[k],name:n,pass:p,subject:s,classes:c,homeroom:h||null,phone:phone||''};
   sLoad('Saving...');await svSchool();hLoad();flash();showPg('atch');
 }
 async function bulkImportTch(){
@@ -4469,7 +4468,7 @@ async function svStu(k){
   sLoad('Saving...');
   try{
     if(file)await phSet(k,await phResize(file,256));
-    DB.users[k]={...DB.users[k],name:n,pass:(DB.users[k]&&DB.users[k].authMigrated)?undefined:p,class:c,dob:dob};
+    DB.users[k]={...DB.users[k],name:n,pass:p,class:c,dob:dob};
     if(!dob)delete DB.users[k].dob;
     await svSchool();
   }catch(e){hLoad();alert('❌ '+(e&&e.message||'Save failed'));return;}
@@ -5891,15 +5890,15 @@ async function mdSaveAccount(){
     }
     const op=$('ac-op').value,np=$('ac-np').value,np2=$('ac-np2').value;
     if(op||np||np2){
-      if(r.authMigrated?!(await window.__pwAuth.verify(op)):op!==r.pass){mdErr('Ընթացիկ գաղտնաբառը սխալ է։',['ac-op']);return;}
+      if(op!==r.pass){mdErr('Ընթացիկ գաղտնաբառը սխալ է։',['ac-op']);return;}
       if(!vPass(np)){mdErr('Նոր գաղտնաբառը պետք է ունենա մեծատառ, փոքրատառ, թիվ, նշան և առնվազն 8 նիշ։',['ac-np']);return;}
       if(np!==np2){mdErr('Գաղտնաբառերը չեն համընկնում։',['ac-np2']);return;}
-      newPass=np;window.__pwOp=op;
+      newPass=np;
     }
   }
   r.phone=phone;CU.phone=phone;
   if(newLogin){r.login=newLogin;CU.login=newLogin;}
-  if(newPass){if(r.authMigrated){try{await window.__pwAuth.change(window.__pwOp,newPass);}catch(e){mdErr('Գաղտնաբառը չհաջողվեց փոխել։ Փորձեք կրկին։');return;}}else{r.pass=newPass;CU.pass=newPass;}}
+  if(newPass){r.pass=newPass;CU.pass=newPass;}
   sLoad('Saving...');
   try{await mdSaveDB();}catch(e){hLoad();return;}
   hLoad();mdUbarRender();mdCloseModal();flash();
@@ -15435,259 +15434,6 @@ async function fpMount(){
   }catch(e){console.warn(e);}
 }
 if(typeof window.apHomeRender==='function'){const _r=window.apHomeRender;window.apHomeRender=async function(){const x=await _r.apply(this,arguments);fpMount();return x;};}
-})();
-</script>
-
-<style id="md-pwa-css">
-#pw-gate,#pwm-ov,#pw-how{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(8,10,20,.55);-webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3)}
-#pw-gate{z-index:2147483200}#pwm-ov{z-index:100001;overflow:auto}#pw-how{z-index:100002}
-#pw-gate.on,#pwm-ov.on,#pw-how.on{display:flex}
-.pw-bx{width:min(440px,100%);background:var(--surf,#fff);color:var(--txt,#111);border:1px solid var(--bdr,#e5e5ea);border-radius:28px;padding:30px 26px;box-shadow:0 30px 80px rgba(0,0,0,.35);animation:pwIn .45s cubic-bezier(.32,.72,0,1) both;max-height:92vh;overflow:auto}
-.pw-bx.w{width:min(640px,100%)}
-@keyframes pwIn{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
-.pw-lg{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;letter-spacing:.02em;color:var(--txt2,#666);margin-bottom:14px}
-.pw-lg i{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#0a84ff,#7d5cff);color:#fff;font-style:normal;font-size:15px}
-.pw-bx h3{margin:0 0 8px;font-size:24px;font-weight:700;letter-spacing:-.03em}
-.pw-bx p{margin:0 0 16px;font-size:14px;line-height:1.55;color:var(--txt2,#555)}
-.pw-f{position:relative;margin-bottom:12px}
-.pw-f label{display:block;font-size:12px;font-weight:600;color:var(--txt2,#666);margin:0 0 6px 4px}
-.pw-f input[type=password],.pw-f input[type=text]{width:100%;box-sizing:border-box;padding:14px 48px 14px 16px;border-radius:14px;border:1.5px solid var(--bdr,#ddd);background:var(--surf2,#f5f5f7);color:inherit;font:15px inherit;font-family:inherit;transition:.2s}
-.pw-f input:focus{outline:none;border-color:#0a84ff;box-shadow:0 0 0 4px rgba(10,132,255,.18)}
-.pw-eye{position:absolute;right:8px;bottom:6px;width:36px;height:36px;border:0;border-radius:10px;background:none;cursor:pointer;color:var(--txt2,#666);font-size:17px}
-.pw-eye:hover{background:var(--surf3,rgba(128,128,128,.15))}
-.pw-er{min-height:18px;color:#ff453a;font-size:13px;margin:2px 4px 10px}
-.pw-btn{width:100%;border:0;border-radius:14px;padding:15px;font:700 15px inherit;font-family:inherit;color:#fff;cursor:pointer;background:linear-gradient(135deg,#0a84ff,#6e5bff);box-shadow:0 8px 22px rgba(10,132,255,.35);transition:.2s}
-.pw-btn:hover{transform:translateY(-1px)}.pw-btn:disabled{opacity:.55;cursor:wait;transform:none}
-.pw-btn.s{background:var(--surf2,#eee);color:var(--txt,#111);box-shadow:none;margin-top:8px}
-.pw-btn.d{background:linear-gradient(135deg,#ff453a,#ff6b3d);box-shadow:0 8px 22px rgba(255,69,58,.3)}
-.pw-ok{text-align:center;padding:10px 0}.pw-ok b{display:block;font-size:44px;margin-bottom:10px;animation:pwIn .5s both}
-.pw-note{margin:0 0 14px;padding:14px 16px;border-radius:18px;background:linear-gradient(135deg,rgba(10,132,255,.14),rgba(125,92,255,.14));border:1px solid rgba(10,132,255,.28);animation:pwIn .5s both}
-.pw-note b{display:block;font-size:14px;margin-bottom:4px}.pw-note span{display:block;font-size:13px;line-height:1.5;color:var(--txt2,#555)}
-.pw-note button{margin-top:10px;border:0;border-radius:999px;padding:8px 16px;background:#0a84ff;color:#fff;font:600 13px inherit;font-family:inherit;cursor:pointer}
-.pw-st{list-style:none;padding:0;margin:0 0 16px;counter-reset:s}
-.pw-st li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;padding:10px 0;font-size:14px;line-height:1.5;color:var(--txt,#111)}
-.pw-st li:before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;background:#0a84ff;color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
-.pwm-tools{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
-.pwm-tools select,.pwm-tools input{flex:1;min-width:120px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--bdr,#ddd);background:var(--surf2,#f5f5f7);color:inherit;font:inherit;font-size:13px}
-.pwm-list{max-height:240px;overflow:auto;border:1px solid var(--bdr,#e5e5ea);border-radius:14px;margin-bottom:12px}
-.pwm-list label{display:flex;gap:10px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--bdr,#eee);font-size:13px;cursor:pointer}
-.pwm-list label:last-child{border:0}.pwm-list small{color:var(--txt3,#888);margin-left:auto}
-.pwm-sum{padding:12px 14px;border-radius:14px;background:var(--surf2,#f5f5f7);font-size:14px;font-weight:600;margin-bottom:12px}
-</style>
-<script id="md-pwa-js">
-(function(){
-'use strict';
-const $=id=>document.getElementById(id);
-const E=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const L={
-hy:{g1:'Ստեղծեք ձեր նոր գաղտնաբառը',g2:'Անվտանգության նկատառումներով ադմինիստրատորը պահանջում է փոխել ձեր գաղտնաբառը։ Առանց դրա չեք կարող շարունակել։',np:'Նոր գաղտնաբառ',np2:'Կրկնել նոր գաղտնաբառը',cur:'Գործող գաղտնաբառ',ok:'Հաստատել',out:'Դուրս գալ',
- e1:'Գաղտնաբառը պետք է ունենա մեծատառ, փոքրատառ, թիվ, նշան և առնվազն 8 նիշ։',e2:'Գաղտնաբառերը չեն համընկնում։',e3:'Նոր գաղտնաբառը պետք է տարբերվի գործողից։',e4:'Չհաջողվեց պահպանել։ Փորձեք կրկին։',e5:'Գաղտնաբառը փոխված է, բայց վիճակը չպահպանվեց։ Սեղմեք «Հաստատել» կրկին։',e6:'Նույնականացումը չհաջողվեց։ Մուտքագրեք գործող գաղտնաբառը։',e7:'Սեսիան ավարտվել է։ Մուտք գործեք կրկին։',e8:'Չափազանց շատ փորձեր։ Սպասեք և կրկին փորձեք։',succ:'Ձեր գաղտնաբառը հաջողությամբ փոփոխվել է։',succ2:'Այժմ կարող եք օգտվել համակարգից։',close:'Փակել'},
-en:{g1:'Create your new password',g2:'For security reasons the administrator requires you to change your password. You cannot continue without it.',np:'New password',np2:'Repeat new password',cur:'Current password',ok:'Confirm',out:'Sign out',
- e1:'Password needs an uppercase letter, lowercase letter, digit, symbol and at least 8 characters.',e2:'Passwords do not match.',e3:'The new password must differ from the current one.',e4:'Could not save. Please try again.',e5:'Password changed, but the state was not saved. Press “Confirm” again.',e6:'Authentication failed. Enter your current password.',e7:'Session ended. Please sign in again.',e8:'Too many attempts. Wait and try again.',succ:'Your password was changed successfully.',succ2:'You can now use the system.',close:'Close'},
-ru:{g1:'Создайте новый пароль',g2:'По соображениям безопасности администратор требует сменить ваш пароль. Без этого продолжить нельзя.',np:'Новый пароль',np2:'Повторите новый пароль',cur:'Текущий пароль',ok:'Подтвердить',out:'Выйти',
- e1:'Пароль: заглавная и строчная буквы, цифра, символ и не менее 8 символов.',e2:'Пароли не совпадают.',e3:'Новый пароль должен отличаться от текущего.',e4:'Не удалось сохранить. Повторите попытку.',e5:'Пароль изменён, но состояние не сохранено. Нажмите «Подтвердить» ещё раз.',e6:'Не удалось подтвердить личность. Введите текущий пароль.',e7:'Сессия завершена. Войдите снова.',e8:'Слишком много попыток. Подождите.',succ:'Ваш пароль успешно изменён.',succ2:'Теперь можно пользоваться системой.',close:'Закрыть'},
-fr:{g1:'Créez votre nouveau mot de passe',g2:'Pour des raisons de sécurité, l’administrateur exige que vous changiez votre mot de passe. Impossible de continuer sans cela.',np:'Nouveau mot de passe',np2:'Répétez le mot de passe',cur:'Mot de passe actuel',ok:'Confirmer',out:'Se déconnecter',
- e1:'Le mot de passe doit contenir majuscule, minuscule, chiffre, symbole et 8 caractères minimum.',e2:'Les mots de passe ne correspondent pas.',e3:'Le nouveau mot de passe doit différer de l’actuel.',e4:'Échec de l’enregistrement. Réessayez.',e5:'Mot de passe changé, mais l’état n’a pas été enregistré. Cliquez à nouveau sur « Confirmer ».',e6:'Authentification échouée. Saisissez le mot de passe actuel.',e7:'Session terminée. Reconnectez-vous.',e8:'Trop de tentatives. Patientez.',succ:'Votre mot de passe a été modifié avec succès.',succ2:'Vous pouvez maintenant utiliser le système.',close:'Fermer'}};
-const lg=()=>{try{return L[_lang]?_lang:'hy';}catch(e){return 'hy';}};
-const T=k=>(L[lg()]||L.hy)[k]||L.hy[k];
-const A={hy:{card:'Գաղտնաբառերի կառավարում',t:'Պարտադիր գաղտնաբառի փոփոխում',p:'Ընտրեք օգտատերերին։ Նրանք կմուտք գործեն իրենց ներկայիս գաղտնաբառով, ապա պարտադիր կսահմանեն նորը։ Դուք գաղտնաբառ չեք տեսնում և չեք փոխում։',all:'Բոլոր դերերը',stu:'Աշակերտներ',tch:'Ուսուցիչներ',par:'Ծնողներ',q:'Որոնել…',sel:'Ընտրել բոլորը (ցուցադրվածները)',run:'Պահանջել գաղտնաբառի փոփոխություն',rm:'Հանել պահանջը',aff:n=>'Ազդվելու է '+n+' հաշիվ',cf:n=>'Հաստատե՞լ՝ '+n+' հաշվի համար կակտիվանա գաղտնաբառի պարտադիր փոփոխումը։',cf2:n=>'Հանե՞լ '+n+' հաշվի պարտադիր փոփոխման պահանջը։',yes:'Հաստատել',no:'Չեղարկել',e0:'Ընտրեք առնվազն մեկ հաշիվ։',done:n=>n+' հաշվի նշումը թարմացվեց։',fail:'Չհաջողվեց պահպանել',req:'պահանջվում է'},
- en:{card:'Password management',t:'Mandatory password change',p:'Select users. They sign in with their current password and must then set a new one. You never see or change their passwords.',all:'All roles',stu:'Students',tch:'Teachers',par:'Parents',q:'Search…',sel:'Select all (shown)',run:'Require password change',rm:'Remove requirement',aff:n=>n+' account(s) will be affected',cf:n=>'Confirm: a mandatory password change will be activated for '+n+' account(s).',cf2:n=>'Remove the mandatory change requirement for '+n+' account(s)?',yes:'Confirm',no:'Cancel',e0:'Select at least one account.',done:n=>n+' account(s) updated.',fail:'Could not save',req:'required'}};
-const AT=k=>(A[lg()]||A.en)[k]||A.en[k];
-const isAdmin=()=>typeof CU!=='undefined'&&CU&&CU.role==='admin'&&CU.username==='admin';
-const hasFlag=v=>v&&(v.mustChangePassword===true||v.mc===true);
-async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
-const eye=(id)=>'<button type="button" class="pw-eye" aria-label="show/hide" onclick="(function(b){var i=document.getElementById(\''+id+'\');i.type=i.type===\'password\'?\'text\':\'password\';b.textContent=i.type===\'password\'?\'👁\':\'🙈\';})(this)">👁</button>';
-
-/* ===== Firebase Authentication ===== */
-let auth=null;try{if(firebase.auth)auth=firebase.auth();}catch(e){console.warn('auth',e);}
-const authReady=auth?new Promise(r=>{const un=auth.onAuthStateChanged(()=>{un();r();});setTimeout(r,4000);}):Promise.resolve();
-const em=k=>{const s=String(k).toLowerCase().replace(/[^a-z0-9._+\-@]/g,c=>'_'+c.charCodeAt(0).toString(16));return s.includes('@')?s:s+'@mds.school';};
-let curPw=null;            // ընթացիկ գաղտնաբառը՝ միայն հիշողության մեջ (reauth-ի համար)
-let legacyWeak=null;       // {k} — հին կարճ գաղտնաբառով հաշիվ, որի համար Auth հաշիվ դեռ չկա
-const rndPw=()=>{const a=new Uint8Array(24);crypto.getRandomValues(a);return 'Aa1!'+[...a].map(x=>x.toString(16).padStart(2,'0')).join('');};
-async function scrub(k){ // Firestore-ից հեռացնել գաղտնաբառը՝ Auth հաշվի առկայությունից հետո
-  const u=DB.users&&DB.users[k];if(!u)return;
-  if(u.pass===undefined&&u.ph===undefined&&u.authMigrated===true)return;
-  delete u.pass;delete u.ph;delete u.salt;u.authMigrated=true;
-  try{await svSchool();}catch(e){console.warn('scrub',e);}
-}
-window.__pwAuth={
-  async verify(pw){try{const cu=auth.currentUser;await cu.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(cu.email,pw));return true;}catch(e){return false;}},
-  async change(op,np){const cu=auth.currentUser;if(!cu)throw new Error('no-auth');await cu.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(cu.email,op));await cu.updatePassword(np);curPw=np;}
-};
-
-const _l=window.login;
-window.login=function(){
-  const self=this,args=arguments;
-  try{
-    const u=(($('lu')||{}).value||'').trim().toLowerCase(),p=(($('lp')||{}).value||'').trim();
-    if(auth&&u&&p&&u!=='admin'&&typeof DB!=='undefined'&&DB&&DB.users&&!DB.maintenance&&window.crypto&&crypto.subtle){
-      const c=Object.entries(DB.users).filter(([k,v])=>v&&(k.replace(/_t$|_s$/,'').toLowerCase()===u||(v.login&&String(v.login).toLowerCase()===u)));
-      if(c.length){
-        (async()=>{
-          const er=$('le');let blocked=false;
-          for(const [k,v] of c){
-            const email=em(k);
-            try{
-              await auth.signInWithEmailAndPassword(email,p);
-              curPw=p;legacyWeak=null;
-              const o={...v,username:k};delete o.ph;delete o.salt;delete o.pass;CU=o;
-              $('lp').value='';startApp();scrub(k);return;
-            }catch(e){
-              if(e&&e.code==='auth/too-many-requests'){blocked=true;continue;}
-            }
-            // հին (չտեղափոխված) հաշիվ՝ ստուգում Firestore-ի հին արժեքով
-            const legacy=(v.pass&&v.pass===p)||(v.ph&&v.salt&&await sha(v.salt+p)===v.ph);
-            if(!legacy)continue;
-            try{
-              await auth.createUserWithEmailAndPassword(email,p);
-              curPw=p;legacyWeak=null;
-              const o={...v,username:k};delete o.ph;delete o.salt;delete o.pass;CU=o;
-              $('lp').value='';startApp();scrub(k);return;
-            }catch(e){
-              if(e&&e.code==='auth/weak-password'){ // Firebase-ը չի ընդունում <6 նիշ
-                curPw=p;legacyWeak=hasFlag(v)?{k}:null;
-                const o={...v,username:k};delete o.ph;delete o.salt;delete o.pass;CU=o;
-                $('lp').value='';startApp();return;
-              }
-              console.warn('migrate',e&&e.code);
-            }
-          }
-          if(blocked&&er){er.textContent=T('e8');return;}
-          _l.apply(self,args);
-        })();
-        return;
-      }
-    }
-  }catch(e){console.error(e);}
-  return _l.apply(this,arguments);
-};
-
-/* ===== forced change window ===== */
-function must(){return typeof CU!=='undefined'&&CU&&CU.role!=='admin'&&typeof DB!=='undefined'&&DB&&DB.users&&hasFlag(DB.users[CU.username]);}
-let pwDone=false;
-function gate(){
-  if(!must()){const g=$('pw-gate');if(g&&!g._busy)g.classList.remove('on');return;}
-  let g=$('pw-gate');
-  if(!g){document.body.insertAdjacentHTML('beforeend','<div id="pw-gate" role="dialog" aria-modal="true"></div>');g=$('pw-gate');}
-  if(!g.classList.contains('on')||!g.firstChild){
-    g.innerHTML='<div class="pw-bx"><div class="pw-lg"><i>🎓</i>MyDigitalSchool</div><h3>'+E(T('g1'))+'</h3><p>'+E(T('g2'))+'</p>'
-     +'<div class="pw-f" id="pwg0w" style="display:none"><label>'+E(T('cur'))+'</label><input id="pwg0" type="password" autocomplete="off">'+eye('pwg0')+'</div>'
-     +'<div class="pw-f"><label>'+E(T('np'))+'</label><input id="pwg1" type="password" autocomplete="new-password">'+eye('pwg1')+'</div>'
-     +'<div class="pw-f"><label>'+E(T('np2'))+'</label><input id="pwg2" type="password" autocomplete="new-password" onkeydown="if(event.key===\'Enter\')pwGateOk()">'+eye('pwg2')+'</div>'
-     +'<div class="pw-er" id="pwg-e"></div><button type="button" class="pw-btn" id="pwg-b" onclick="pwGateOk()">'+E(T('ok'))+'</button><button type="button" class="pw-btn s" onclick="logout()">'+E(T('out'))+'</button></div>';
-    g.classList.add('on');pwDone=false;setTimeout(()=>{const i=$('pwg1');if(i)i.focus();},80);
-  }
-}
-async function saveFlag(k){
-  const u=DB.users[k];
-  const bak={m:u.mustChangePassword,mc:u.mc,pass:u.pass,ph:u.ph,salt:u.salt,am:u.authMigrated,at:u.pwAt};
-  u.mustChangePassword=false;delete u.mc;delete u.pass;delete u.ph;delete u.salt;u.authMigrated=true;u.pwAt=Date.now();
-  try{await svSchool();}catch(e){u.mustChangePassword=bak.m;u.mc=bak.mc;u.authMigrated=bak.am;u.pwAt=bak.at;throw e;}
-}
-window.pwGateOk=async function(){
-  const g=$('pw-gate'),er=$('pwg-e'),btn=$('pwg-b');er.textContent='';
-  const k=CU&&CU.username,u=DB.users&&DB.users[k];if(!u)return;
-  const a=$('pwg1').value,b=$('pwg2').value;
-  if(!pwDone){
-    if(!vPass(a)){er.textContent=T('e1');return;}
-    if(a!==b){er.textContent=T('e2');return;}
-    if(curPw&&a===curPw){er.textContent=T('e3');return;}
-  }
-  btn.disabled=true;g._busy=true;
-  try{
-    if(!pwDone){
-      await authReady;
-      const email=em(k);
-      if(legacyWeak&&legacyWeak.k===k&&!auth.currentUser){
-        // Auth հաշիվ դեռ չկա (հին կարճ գաղտնաբառ)՝ ստեղծվում է ժամանակավոր պատահական գաղտնաբառով և անմիջապես փոխվում օգտատիրոջ նորով
-        await auth.createUserWithEmailAndPassword(email,rndPw());
-      }
-      const cu=auth.currentUser;
-      if(!cu||String(cu.email).toLowerCase()!==email){er.textContent=T('e7');btn.disabled=false;g._busy=false;return;}   // միայն սեփական հաշիվ
-      try{await cu.updatePassword(a);}
-      catch(e){
-        if(e&&e.code==='auth/requires-recent-login'){
-          let old=curPw;
-          if(!old){const w=$('pwg0w');w.style.display='';old=$('pwg0').value;if(!old){er.textContent=T('e6');btn.disabled=false;g._busy=false;$('pwg0').focus();return;}}
-          try{await cu.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(email,old));}
-          catch(e2){const w=$('pwg0w');w.style.display='';er.textContent=T('e6');btn.disabled=false;g._busy=false;return;}
-          await cu.updatePassword(a);
-        }else throw e;
-      }
-      curPw=a;legacyWeak=null;pwDone=true;
-    }
-    try{await saveFlag(k);}
-    catch(e){er.textContent=T('e5');btn.disabled=false;g._busy=false;return;}
-  }catch(e){
-    console.error(e);const c=e&&e.code;
-    er.textContent=c==='auth/weak-password'?T('e1'):c==='auth/too-many-requests'?T('e8'):T('e4');
-    btn.disabled=false;g._busy=false;return;
-  }
-  $('pwg1')&&($('pwg1').value='');$('pwg2')&&($('pwg2').value='');
-  g.querySelector('.pw-bx').innerHTML='<div class="pw-ok"><b>✅</b><h3>'+E(T('succ'))+'</h3><p>'+E(T('succ2'))+'</p></div>';
-  setTimeout(()=>{g._busy=false;g.classList.remove('on');g.innerHTML='';pwDone=false;try{CU.mustChangePassword=false;showPg('dash');}catch(e){}},1800);
-};
-const _sa=window.startApp;if(typeof _sa==='function')window.startApp=function(){const r=_sa.apply(this,arguments);gate();return r;};
-const _sp=window.showPg;if(typeof _sp==='function')window.showPg=function(){if(must()){gate();return;}return _sp.apply(this,arguments);};
-const _lo=window.logout;if(typeof _lo==='function')window.logout=function(){curPw=null;legacyWeak=null;try{if(auth)auth.signOut();}catch(e){}return _lo.apply(this,arguments);};
-setInterval(()=>{try{gate();}catch(e){}},600);
-// սեսիայի վերականգնում (7 օր)՝ Auth-ը պահպանվում է բրաուզերում. եթե չկա և փոփոխություն է պահանջվում՝ նորից մուտք
-authReady.then(()=>{setTimeout(()=>{try{if(must()&&!auth.currentUser&&!legacyWeak){logout();const e=$('le');if(e)e.textContent=T('e7');}}catch(e){}},300);});
-
-/* ===== admin: require password change ===== */
-let sel=new Set();
-function rows(){
-  const f=($('pwm-r')||{}).value||'',q=((($('pwm-q')||{}).value)||'').trim().toLowerCase();
-  return Object.entries((DB&&DB.users)||{}).filter(([k,v])=>v&&k!=='admin'&&v.role!=='admin'&&(!f||v.role===f)&&(!q||(k+' '+(v.name||'')).toLowerCase().includes(q)));
-}
-function paintList(){
-  const r=rows();
-  $('pwm-l').innerHTML=r.map(([k,v])=>'<label><input type="checkbox" data-k="'+E(k)+'"'+(sel.has(k)?' checked':'')+'> <span>'+E(v.name||k)+'</span><small>'+E(k.replace(/_t$|_s$/,''))+' · '+E(v.role||'')+(hasFlag(v)?' · ⚠ '+E(AT('req')):'')+'</small></label>').join('');
-  $('pwm-l').querySelectorAll('input').forEach(c=>c.onchange=()=>{c.checked?sel.add(c.dataset.k):sel.delete(c.dataset.k);paintSum();});
-  paintSum();
-}
-function paintSum(){const n=[...sel].filter(k=>DB.users[k]).length;$('pwm-s').textContent=AT('aff')(n);}
-window.pwmOpen=function(){
-  if(!isAdmin())return;sel=new Set();
-  let o=$('pwm-ov');if(!o){document.body.insertAdjacentHTML('beforeend','<div id="pwm-ov"></div>');o=$('pwm-ov');}
-  o.innerHTML='<div class="pw-bx w"><div class="pw-lg"><i>🔑</i>MyDigitalSchool</div><h3>'+E(AT('t'))+'</h3><p>'+E(AT('p'))+'</p>'
-   +'<div class="pwm-tools"><select id="pwm-r"><option value="">'+E(AT('all'))+'</option><option value="student">'+E(AT('stu'))+'</option><option value="teacher">'+E(AT('tch'))+'</option><option value="parent">'+E(AT('par'))+'</option></select><input id="pwm-q" placeholder="'+E(AT('q'))+'"></div>'
-   +'<label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:0 4px 8px"><input type="checkbox" id="pwm-all"> '+E(AT('sel'))+'</label>'
-   +'<div class="pwm-list" id="pwm-l"></div><div class="pwm-sum" id="pwm-s"></div><div class="pw-er" id="pwm-e"></div>'
-   +'<div id="pwm-act"><button type="button" class="pw-btn" onclick="pwmAsk(true)">'+E(AT('run'))+'</button><button type="button" class="pw-btn s" onclick="pwmAsk(false)">'+E(AT('rm'))+'</button>'
-   +'<button type="button" class="pw-btn s" onclick="pwmClose()">'+E(T('close'))+'</button></div></div>';
-  o.classList.add('on');
-  $('pwm-r').onchange=$('pwm-q').oninput=paintList;
-  $('pwm-all').onchange=e=>{rows().forEach(([k])=>e.target.checked?sel.add(k):sel.delete(k));paintList();};
-  paintList();
-};
-window.pwmClose=function(){const o=$('pwm-ov');if(o){o.classList.remove('on');o.innerHTML='';}};
-window.pwmAsk=function(on){
-  if(!isAdmin())return;const er=$('pwm-e');er.textContent='';
-  const n=[...sel].filter(k=>DB.users[k]).length;if(!n){er.textContent=AT('e0');return;}
-  $('pwm-act').innerHTML='<div class="pwm-sum">'+E((on?AT('cf'):AT('cf2'))(n))+'</div><button type="button" class="pw-btn'+(on?'':' d')+'" id="pwm-go" onclick="pwmGo('+(on?'true':'false')+')">'+E(AT('yes'))+'</button><button type="button" class="pw-btn s" onclick="pwmOpen()">'+E(AT('no'))+'</button>';
-};
-window.pwmGo=async function(on){
-  if(!isAdmin())return;const btn=$('pwm-go');btn.disabled=true;
-  const keys=[...sel].filter(k=>DB.users[k]&&DB.users[k].role!=='admin'),bak={};
-  try{
-    keys.forEach(k=>{const u=DB.users[k];bak[k]={m:u.mustChangePassword,mc:u.mc};u.mustChangePassword=!!on;delete u.mc;});
-    await svSchool();
-  }catch(e){
-    console.error(e);Object.keys(bak).forEach(k=>{const u=DB.users[k];if(bak[k].m===undefined)delete u.mustChangePassword;else u.mustChangePassword=bak[k].m;if(bak[k].mc!==undefined)u.mc=bak[k].mc;});
-    $('pwm-act').innerHTML='<div class="pw-er">'+E(AT('fail'))+'</div><button type="button" class="pw-btn s" onclick="pwmOpen()">OK</button>';return;
-  }
-  $('pwm-act').innerHTML='<div class="pw-ok"><b>✅</b><p>'+E(AT('done')(keys.length))+'</p></div><button type="button" class="pw-btn" onclick="pwmClose()">OK</button>';
-};
-function mountCard(){
-  try{
-    if(!isAdmin()||$('pw-card'))return;const g=document.querySelector('#aphome-b .ap-grid');if(!g)return;
-    g.insertAdjacentHTML('afterbegin','<section class="ap-c w12" id="pw-card" style="--i:0"><div class="ap-ch"><b>🔑 '+E(AT('card'))+'</b></div><div style="padding:0 4px 4px"><button type="button" class="pw-btn" style="width:auto;padding:11px 20px" onclick="pwmOpen()">'+E(AT('run'))+'</button></div></section>');
-  }catch(e){}
-}
-if(typeof window.apHomeRender==='function'){const _r=window.apHomeRender;window.apHomeRender=async function(){const x=await _r.apply(this,arguments);mountCard();return x;};}
-setInterval(mountCard,1500);
 })();
 </script>
 </body>

@@ -8400,7 +8400,7 @@ async function saveDeckDoc(d){
   d.title=(d.title||'').trim()||'Անանուն սահիկաշար';d.updated=Date.now();
   d.imgs=[...new Set((d.imgs||[]).concat(imgIds(d)))];
   const first=d.slides[0]||{},cid=first.bgImg||first.img;
-  const cover=cid?await thumbOf(await getImg(cid),240):'';
+  let cover='';if(cid){if(S._cv&&S._cv.id===cid)cover=S._cv.v;else{cover=await thumbOf(await getImg(cid),240);S._cv={id:cid,v:cover};}}
   const meta={id:d.id,title:d.title,subject:d.subject||'',owner:d.owner,ownerName:d.ownerName||'',created:d.created,updated:d.updated,classes:d.classes||[],collabU:d.collabU||[],collabE:d.collabE||[],count:d.slides.length,cover:cover,bg:first.bg||'#6366f1',tc:first.tc||autoTc(first.bg||'#6366f1')};
   await writeDeck(d);
   meta.count=d.slides.length;meta.collabU=d.collabU||[];meta.collabE=d.collabE||[];meta.title=d.title;
@@ -8826,7 +8826,7 @@ document.addEventListener('keydown',ev=>{
 /* ---------- save ---------- */
 function slMark(noHist){
   S.dirty=true;setStatus('Չպահպանված փոփոխություններ…','');
-  clearTimeout(S.timer);S.timer=setTimeout(()=>slSave(false),1400);
+  clearTimeout(S.timer);S.timer=setTimeout(()=>slSave(false),(CB&&CB.on)?450:1400);
   if(!noHist){clearTimeout(S.hT);S.hT=setTimeout(histCommit,350);}
 }
 document.addEventListener('visibilitychange',function(){if(document.hidden&&S&&S.deck&&S.dirty&&!S.saving){try{window.slSave(false);}catch(e){}}});
@@ -8890,7 +8890,27 @@ const CB_COL=['#ef4444','#f59e0b','#10b981','#06b6d4','#6366f1','#d946ef','#f973
 const cbColor=u=>{let h=0;u=String(u||'');for(let i=0;i<u.length;i++)h=(h*31+u.charCodeAt(i))>>>0;return CB_COL[h%CB_COL.length];};
 const PRK=id=>'slpres_'+id;
 const js=o=>JSON.stringify(o===undefined?null:o);
-function ensureIds(d){let ch=false;(d.slides||[]).forEach(sl=>{if(!sl.id){sl.id=uid();ch=true;}if(!sl.els)sl.els=[];sl.els.forEach(e=>{if(!e.id){e.id=uid();ch=true;}});});return ch;}
+function ensureIds(d){
+  // id չունեցող (հին) սահիկները/տարրերը ստանում են ՍՏԱԲԼ id՝ նույնը բոլոր սարքերում, որպեսզի միաձուլումը դրանք չկրկնի
+  let ch=false;
+  (d.slides||[]).forEach((sl,i)=>{
+    if(!sl.id){sl.id='L'+i;ch=true;}
+    if(!sl.els)sl.els=[];
+    sl.els.forEach((e,j)=>{if(!e.id){e.id=sl.id+'e'+j;ch=true;}});
+  });
+  if(dedupeIds(d))ch=true;
+  return ch;
+}
+function dedupeIds(d){
+  let ch=false;const ss=new Set(),out=[];
+  (d.slides||[]).forEach(sl=>{
+    if(ss.has(sl.id)){ch=true;return;}ss.add(sl.id);
+    if(sl.els){const es=new Set(),eo=[];sl.els.forEach(e=>{if(es.has(e.id)){ch=true;return;}es.add(e.id);eo.push(e);});if(eo.length!==sl.els.length)sl.els=eo;}
+    out.push(sl);
+  });
+  if(out.length!==(d.slides||[]).length)d.slides=out;
+  return ch;
+}
 
 /* --- 3-way merge --- */
 function mFields(b,l,r,skip,cf){
@@ -8904,7 +8924,8 @@ function mFields(b,l,r,skip,cf){
   return o;
 }
 function mList(bl,ll,rl,cf,mi){
-  bl=bl||[];ll=ll||[];rl=rl||[];
+  const uq=a=>{const z=new Set();return (a||[]).filter(x=>x&&x.id&&!z.has(x.id)&&z.add(x.id));};
+  bl=uq(bl);ll=uq(ll);rl=uq(rl);
   const bm=new Map(bl.map(x=>[x.id,x])),lm=new Map(ll.map(x=>[x.id,x])),rm=new Map(rl.map(x=>[x.id,x]));
   const bo=bl.map(x=>x.id),lo=ll.map(x=>x.id),ro=rl.map(x=>x.id);
   let order=(js(lo)!==js(bo)&&js(ro)===js(bo))?lo.slice():ro.slice();
@@ -8938,7 +8959,7 @@ async function writeDeck(d){
   const compute=r=>{
     const loc=clone(d);
     if(!r||!r.slides||!r.slides.length){merged=loc;merged.rev=1;}
-    else{r.slides.forEach(sl=>{if(!sl.els)sl.els=[];});const cf={n:0};merged=mDeck(oldBase,loc,r,cf);merged.rev=(r.rev||0)+1;CB.conflicts=cf.n;}
+    else{ensureIds(r);ensureIds(loc);const cf={n:0};merged=mDeck(oldBase,loc,r,cf);merged.rev=(r.rev||0)+1;CB.conflicts=cf.n;}
     merged.lastBy=me();merged.lastName=(CU&&CU.name)||me();
     return merged;
   };
@@ -8966,21 +8987,21 @@ function cbSyncMeta(){const t=$('sl-title'),u=$('sl-subject');if(!S.deck)return;
   if(u&&document.activeElement!==u&&u.value!==(S.deck.subject||''))u.value=S.deck.subject||'';}
 function cbRedraw(){
   if(!S.deck||!$('sl-ed').classList.contains('on'))return;
-  clearTimeout(CB.rt);if(cbBusy()){CB.rt=setTimeout(cbRedraw,700);return;}
+  clearTimeout(CB.rt);if(cbBusy()){try{drawRail();cbDots();}catch(e){}CB.rt=setTimeout(cbRedraw,400);return;}
   S.sel=Math.max(0,Math.min(S.sel,S.deck.slides.length-1));if(S.eid&&!curEl())S.eid=null;
   const t=$('sl-title');if(t&&document.activeElement!==t&&t.value!==S.deck.title)t.value=S.deck.title;
   drawAll();
 }
 function cbApply(){
   clearTimeout(CB.pt);const r=CB.pend;if(!r||!S.deck||S.deck.id!==CB.id||!S.base)return;
-  if(S.saving||cbBusy()){CB.pt=setTimeout(cbApply,700);return;}
+  if(S.saving){CB.pt=setTimeout(cbApply,150);return;}
   CB.pend=null;
   if(!cbNewer(r))return;
   if(!canEdit(r)){
     S.dirty=false;collabClose();alert('Ձեր խմբագրման իրավունքը հանվել է այս սահիկաշարի համար։');
     $('sl-ed').classList.remove('on');document.body.style.overflow='';S.deck=null;S.base=null;S.eid=null;renderList(true);return;
   }
-  r.slides.forEach(sl=>{if(!sl.els)sl.els=[];});
+  ensureIds(r);
   const cf={n:0},pre=js(S.deck.slides),merged=mDeck(S.base,S.deck,r,cf);
   replaceIn(S.deck,merged);S.base=clone(r);S.baseRev=r.rev||0;
   cbSyncMeta();
